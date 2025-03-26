@@ -49,7 +49,16 @@ def main():
         print(df.describe())
         st.write(df.describe(include='all'))
 
+        # Count no of unique and distinct elements in the data columns
+        st.subheader("Data unique values")
         st.write(df.nunique())
+
+        calculate_null_value_sum = df.isnull().sum()
+        # Data before the null values 
+        st.subheader("Rows with null values ")
+        st.write(f"The value of every row with null values :\n",calculate_null_value_sum)
+        st.write(df[df.isnull().any(axis=1)])
+
 
         # Clean the data (e.g., remove null values)
         df_clean = VisualizationFuntions.clean_data(df)
