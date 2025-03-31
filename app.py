@@ -59,6 +59,15 @@ def main():
         st.write(f"The value of every row with null values :\n",calculate_null_value_sum)
         st.write(df[df.isnull().any(axis=1)])
 
+        for every_column in column_list:
+            if df[column].dtype == float:
+                int_columns = df[column]
+
+        # The picture representation of the data 
+        with st.container(border =True):
+            data_columns = st.multiselect("Column names",every_column,default=every_column)
+            rolling_average = st.toggle(" Dynamic Content")
+
 
         # Clean the data (e.g., remove null values)
         df_clean = VisualizationFuntions.clean_data(df)
