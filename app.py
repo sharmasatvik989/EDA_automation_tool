@@ -2,16 +2,40 @@ import streamlit as st
 import pandas as pd
 from transformer_model import Column_Recommendar
 from eda import VisualizationFuntions
-
+from dotenv import load_dotenv 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import openai
+from openai import OpenAI
+
+
+load_dotenv()
+
+OPEN_AI_KEY = os.environ['OPENAI_KEY']
 #to ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
 
+def open_ai_llm_call():
+    
+    client = OpenAI(api_key=OPEN_AI_KEY)
+    completion = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "user",
+                "content": "Write a one-sentence bedtime story about a unicorn."
+            }
+        ]
+    )
+    return completion.choices[0].message.content
+
+
 def main():
 
+    print(OPEN_AI_KEY)
     column_list = []
     column_list_dtype = {}
 
@@ -59,21 +83,33 @@ def main():
         st.write(f"The value of every row with null values :\n",calculate_null_value_sum)
         st.write(df[df.isnull().any(axis=1)])
 
-        for every_column in column_list:
-            if df[column].dtype == float:
-                int_columns = df[column]
+        int_columns = ["total_bill","tip","size"]
+
 
         # The picture representation of the data 
         with st.container(border =True):
-            data_columns = st.multiselect("Column names",every_column,default=every_column)
+            data_columns = st.multiselect("Column names",int_columns,default=int_columns)
             rolling_average = st.toggle(" Dynamic Content")
 
+        np.random.seed(42)
+        data = pd.DataFrame(np.random.randn(20, len(data_columns)), columns=data_columns)
+        if rolling_average:
+            data = data.rolling(7).mean().dropna()
 
-        # Clean the data (e.g., remove null values)
-        df_clean = VisualizationFuntions.clean_data(df)
-        st.subheader("Cleaned Data Preview")
-        st.write(df_clean.head())
+        tab1, tab2 = st.tabs(["Chart", "Dataframe"])
+        tab1.line_chart(data, height=250)
+        tab2.dataframe(data, height=250, use_container_width=True)
 
+
+
+
+        # # Clean the data (e.g., remove null values)
+        # df_clean = VisualizationFuntions.clean_data(df)
+        # st.subheader("Cleaned Data Preview")
+        # st.write(df_clean.head())
+
+        func_call = open_ai_llm_call()
+        print(func_call)
 
 
     #     # Instantiate our dummy transformer model for column recommendation
@@ -102,6 +138,8 @@ def main():
 
     #     # Optionally: You could also offer a download of an ipynb version of the analysis.
     #     st.info("If you prefer, you can export this analysis as a Jupyter Notebook file (ipynb) with the output.")
+
+
 
 if __name__ == "__main__":
     main()
